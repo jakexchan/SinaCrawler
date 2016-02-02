@@ -16,8 +16,8 @@ NEWSPIDER_MODULE = 'weibo_crawler.spiders'
 COOKIES_ENABLED = True
 COOKIES_DEBUG = True
 
-DOWNLOAD_DELAY = 5
-DOWNLOAD_TIMEOUT = 15
+DOWNLOAD_DELAY = 15
+DOWNLOAD_TIMEOUT = 30
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 USER_AGENT = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.2526.73 Safari/537.36'
