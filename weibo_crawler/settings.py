@@ -13,5 +13,11 @@ BOT_NAME = 'weibo_crawler'
 SPIDER_MODULES = ['weibo_crawler.spiders']
 NEWSPIDER_MODULE = 'weibo_crawler.spiders'
 
+COOKIES_ENABLED = True
+COOKIES_DEBUG = True
+
+DOWNLOAD_DELAY = 5
+DOWNLOAD_TIMEOUT = 15
+
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
-#USER_AGENT = 'weibo_crawler (+http://www.yourdomain.com)'
+USER_AGENT = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.2526.73 Safari/537.36'
