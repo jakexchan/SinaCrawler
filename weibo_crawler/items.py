@@ -8,19 +8,31 @@
 from scrapy.item import Item, Field
 
 
-class WeiboCrawlerItem(Item):
+class UserBaseItem(Item):
     # define the fields for your item here like:
     # name = scrapy.Field()
     u_id = Field()
-    u_name = Field()
     u_weibo_count = Field()
     u_following = Field()
     u_fans = Field()
-    u_sex = Field()
-    u_region = Field()
-    u_birthday = Field()
-    u_introduction = Field()
-    u_tags = Field()
+    u_base_info = Field()
+    u_experience = Field()
     weibo = Field()
-    learn_experience = Field()
-    work_experience = Field()
+
+
+class WeiboItem(Item):
+    u_id = Field()
+    weibo_content = Field()
+    weibo_type = Field()
+    weibo_ct = Field()
+
+
+# class UserInfoItem(Item):
+#     u_id = Field()
+#     u_name = Field()
+#     u_sex = Field()
+#     u_region = Field()
+#     u_birthday = Field()
+#     u_introduction = Field()
+#     u_tags = Field()
+#     u_school = Field()
