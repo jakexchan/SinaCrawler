@@ -14,10 +14,20 @@ SPIDER_MODULES = ['weibo_crawler.spiders']
 NEWSPIDER_MODULE = 'weibo_crawler.spiders'
 
 COOKIES_ENABLED = True
-COOKIES_DEBUG = True
+#COOKIES_DEBUG = True
 
-DOWNLOAD_DELAY = 15
-DOWNLOAD_TIMEOUT = 30
+DOWNLOAD_DELAY = 1
+DOWNLOAD_TIMEOUT = 20
 
-# Crawl responsibly by identifying yourself (and your website) on the user-agent
+
+# Crawl responsibly by identifying yourself (and your website) on the
+# user-agent
 USER_AGENT = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.2526.73 Safari/537.36'
+
+
+# MySQL database configure setting
+MYSQL_HOST = '127.0.0.1'
+MYSQL_PORT = 3306
+MYSQL_DBNAME = 'weiboDB'
+MYSQL_USER = 'root'
+MYSQL_PASSWORD = 'root'
