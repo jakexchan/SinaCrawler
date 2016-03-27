@@ -16,14 +16,18 @@ NEWSPIDER_MODULE = 'weibo_crawler.spiders'
 COOKIES_ENABLED = True
 #COOKIES_DEBUG = True
 
-DOWNLOAD_DELAY = 1
-DOWNLOAD_TIMEOUT = 20
+DOWNLOAD_DELAY = 10
+DOWNLOAD_TIMEOUT = 30
 
-
+DOWNLOADER_MIDDLEWARES = {
+        'weibo_crawler.comm.rotate_useragent.RotateUserAgentMiddleware' :400
+    }
 # Crawl responsibly by identifying yourself (and your website) on the
-# user-agent
-USER_AGENT = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.2526.73 Safari/537.36'
 
+ITEM_PIPELINES = {
+    'weibo_crawler.pipelines.JsonWriterPipeline': 300,
+    'weibo_crawler.pipelines.WeiboCrawlerPipeline': 300,
+}
 
 # MySQL database configure setting
 MYSQL_HOST = '127.0.0.1'

@@ -25,14 +25,3 @@ class WeiboItem(Item):
     weibo_content = Field()
     weibo_type = Field()
     weibo_ct = Field()
-
-
-# class UserInfoItem(Item):
-#     u_id = Field()
-#     u_name = Field()
-#     u_sex = Field()
-#     u_region = Field()
-#     u_birthday = Field()
-#     u_introduction = Field()
-#     u_tags = Field()
-#     u_school = Field()

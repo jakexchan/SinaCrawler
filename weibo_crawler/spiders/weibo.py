@@ -1,4 +1,4 @@
-# -*- coding: UTF-8 -*-
+# -*- coding: utf-8 -*-
 from scrapy.selector import Selector
 
 from scrapy.contrib.spiders.init import InitSpider
@@ -11,13 +11,13 @@ from weibo_crawler.items import UserBaseItem, WeiboItem
 
 import time
 import re
-
+import json
 
 class WeiboSpider(InitSpider):
     name = 'weibo'
     allowed_domains = ['http://www.weibo.cn']
     keyword = u'北京理工大学珠海学院'
-    pages = 1
+    pages = 200
     start_urls = ["http://login.weibo.cn/login/"]
 
     search_user_url = u"http://weibo.cn/search/user/?keyword="
@@ -31,7 +31,7 @@ class WeiboSpider(InitSpider):
         'Accept-Encoding': 'gzip, deflate, sdch',
         'Accept-Language': 'en-US,en;q=0.8',
         'Connection': 'keep-alive',
-        'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.2526.73 Safari/537.36'
+        #'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.2526.73 Safari/537.36'
     }
 
     def start_requests(self):
@@ -66,18 +66,6 @@ class WeiboSpider(InitSpider):
                 'capId': capId,
                 'submit': submit
             }
-        else:
-            form_data = {
-                'mobile': '',  # weibo account
-                password: '',  # weibo password
-                'remember': 'on',
-                'backURL': backURL,
-                'backTitle': backTitle,
-                'tryCount': tryCount,
-                'vk': vk,
-                'capId': capId,
-                'submit': submit
-            }
         return [FormRequest.from_response(response,
                                           meta={'cookiejar': response.meta[
                                               'cookiejar']},
@@ -90,8 +78,7 @@ class WeiboSpider(InitSpider):
         print u'登录成功'
         url_lists = self.make_url_lists()
         for url in url_lists:
-            # time.sleep(3)
-            print u'发送请求:' + url
+            time.sleep(5)
             yield Request(url,
                           meta={'cookiejar': response.meta['cookiejar']},
                           headers=self.headers,
@@ -127,9 +114,6 @@ class WeiboSpider(InitSpider):
         ut_element = sel.xpath('//div[@class="ut"]')
         info_link = ut_element.xpath(
             '//a[re:test(@href, "\/\d+\/info")]/@href').extract()[0]  # Get the user info link
-        print '--------------info_link--------------'
-        print info_link
-        print '-------------------------------------'
         u_id = info_link.split('/')[1]
         item['u_id'] = u_id  # Get the user id
 
@@ -143,20 +127,20 @@ class WeiboSpider(InitSpider):
 
         weibo_wrap_elements = sel.xpath('//div[@class="c"]')
 
-        weibo_items = []
+        #weibo_items = []
         for index in range(len(weibo_wrap_elements)-2):
             weibo_item = WeiboItem()
             weibo_item['u_id'] = u_id
             weibo_item['weibo_content'] = weibo_wrap_elements[index].xpath('.//span[@class="ctt"]/text()').extract()[0]
             weibo_item['weibo_ct'] = weibo_wrap_elements[index].xpath('.//span[@class="ct"]/text()').extract()
-            subnode_count = weibo_wrap_elements[index].xpath('count(.//div)')
+            subnode_count = len(weibo_wrap_elements[index].xpath('.//div'))
             if subnode_count > 2:
                 weibo_item['weibo_type'] = u'转发'
             else:
                 weibo_item['weibo_type'] = u'原创'
-            weibo_items.append(weibo_item)
-            del weibo_item
-        item['weibo'] = weibo_items
+            yield weibo_item
+            #weibo_items.append(json.dumps(weibo_item))
+        #item['weibo'] = weibo_items
 
         # Make the user info url
         info_url = "http://weibo.cn" + info_link
@@ -171,14 +155,6 @@ class WeiboSpider(InitSpider):
     def parse_info(self, response):
         item = response.meta['item']
         sel = Selector(response)
-        print sel.xpath("//div[@class='c']")
-        print '--------------------------------------'
-        print sel.xpath("//div[@class='c'][3]//text()").extract()
-        print '--------------------------------------'
-        print sel.xpath("//div[@class='c'][4]//text()").extract()
         item['u_base_info'] = sel.xpath("//div[@class='c'][3]//text()").extract()
         item['u_experience'] = sel.xpath("//div[@class='c'][4]//text()").extract()
-        print '*********item valus**********'
-        print item['u_base_info']
-        print item['u_experience']
         return item
