@@ -17,7 +17,7 @@ class WeiboSpider(InitSpider):
     name = 'weibo'
     allowed_domains = ['http://www.weibo.cn']
     keyword = u'北京理工大学珠海学院'
-    pages = 200
+    pages = 1
     start_urls = ["http://login.weibo.cn/login/"]
 
     search_user_url = u"http://weibo.cn/search/user/?keyword="
@@ -78,7 +78,7 @@ class WeiboSpider(InitSpider):
         print u'登录成功'
         url_lists = self.make_url_lists()
         for url in url_lists:
-            time.sleep(5)
+            time.sleep(3)
             yield Request(url,
                           meta={'cookiejar': response.meta['cookiejar']},
                           headers=self.headers,
