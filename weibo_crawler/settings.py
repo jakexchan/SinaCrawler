@@ -16,11 +16,11 @@ NEWSPIDER_MODULE = 'weibo_crawler.spiders'
 COOKIES_ENABLED = True
 #COOKIES_DEBUG = True
 
-DOWNLOAD_DELAY = 10
+#DOWNLOAD_DELAY = 1
 DOWNLOAD_TIMEOUT = 30
 
 DOWNLOADER_MIDDLEWARES = {
-        'weibo_crawler.comm.rotate_useragent.RotateUserAgentMiddleware' :400
+        'weibo_crawler.comm.rotate_useragent.RotateUserAgentMiddleware' :200
     }
 # Crawl responsibly by identifying yourself (and your website) on the
 

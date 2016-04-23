@@ -4,27 +4,34 @@ from scrapy.selector import Selector
 from scrapy.contrib.spiders.init import InitSpider
 from scrapy.contrib.spiders import CrawlSpider, Rule
 from scrapy.contrib.linkextractors.sgml import SgmlLinkExtractor
-
+import os
 from scrapy.http import Request, FormRequest
-
+from scrapy.settings import Settings
 from weibo_crawler.items import UserBaseItem, WeiboItem
-
+import MySQLdb
 import time
 import re
 import json
 
+
 class WeiboSpider(InitSpider):
     name = 'weibo'
     allowed_domains = ['http://www.weibo.cn']
-    keyword = u'北京理工大学珠海学院'
-    pages = 200
     start_urls = ["http://login.weibo.cn/login/"]
 
-    search_user_url = u"http://weibo.cn/search/user/?keyword="
+    fp = file(r'/tmp/options.json')
+    options =  json.load(fp)
+    fp.close
 
-    # rules = (
-    #     Rule(SgmlLinkExtractor(allow = (r'/\w+\?f=search\_\d+',)), callback = 'parse_item', follow = True),
-    # )
+    download_delay = int(options['delay'])
+    #settings.set('DOWNLOAD_DELAY', int(options['delay']))
+    search_user_url = 'http://weibo.cn/search/user/?keyword='
+    
+    keyword = options['keyword']
+    begin_page = int(options['begin_page'])
+    end_page = int(options['end_page'])
+    cook = {"_T_WM": options['t_wm'], 'SUHB': options['suhb'], 'SUB': options['sub'], 'gsid_CTandWM': options['gsid_CTandWM']}
+
 
     headers = {
         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
@@ -33,60 +40,23 @@ class WeiboSpider(InitSpider):
         'Connection': 'keep-alive',
         #'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.2526.73 Safari/537.36'
     }
+    
 
     def start_requests(self):
-        return [Request(self.start_urls[0], meta={'cookiejar': 1}, callback=self.login)]
-
-    def login(self, response):
-        sel = Selector(response)
-        backURL = sel.xpath("//input[@name='backURL']/@value").extract()[0]
-        vk = sel.xpath("//input[@name='vk']/@value").extract()[0]
-        capId = sel.xpath("//input[@name='capId']/@value").extract()[0]
-        backTitle = sel.xpath("//input[@name='backTitle']/@value").extract()[0]
-        tryCount = sel.xpath("//input[@name='tryCount']/@value").extract()[0]
-        submit = sel.xpath("//input[@name='submit']/@value").extract()[0]
-
-        password = sel.xpath("//input[@type='password']/@name").extract()[0]
-
-        if sel.xpath("//img/@alt").extract()[0] == u'请打开图片显示':
-            imgURL = sel.xpath("//img/@src").extract()[0]
-            print '验证码地址:'
-            print imgURL
-            print '请输入验证码:'
-            code = raw_input()
-            form_data = {
-                'mobile': '',  # weibo account
-                password: '',  # weibo password
-                'code': code,
-                'remember': 'on',
-                'backURL': backURL,
-                'backTitle': backTitle,
-                'tryCount': tryCount,
-                'vk': vk,
-                'capId': capId,
-                'submit': submit
-            }
-        return [FormRequest.from_response(response,
-                                          meta={'cookiejar': response.meta[
-                                              'cookiejar']},
-                                          headers=self.headers,
-                                          formdata=form_data,
-                                          callback=self.after_login,
-                                          dont_filter=True)]
+        return [Request(self.start_urls[0], cookies=self.cook, headers=self.headers, callback=self.after_login, dont_filter=True)]
 
     def after_login(self, response):
         print u'登录成功'
         url_lists = self.make_url_lists()
         for url in url_lists:
-            time.sleep(5)
             yield Request(url,
-                          meta={'cookiejar': response.meta['cookiejar']},
+                          cookies=self.cook,
                           headers=self.headers,
                           dont_filter=True)
 
     def make_url_lists(self):
         url_lists = []
-        for i in range(1, self.pages + 1):
+        for i in range(self.begin_page, self.end_page + 1):
             url = self.search_user_url + self.keyword + '&page=' + str(i)
             url_lists.append(url)
         return url_lists
@@ -101,7 +71,7 @@ class WeiboSpider(InitSpider):
             print '请求用户主页:'
             print new_url
             yield Request(new_url,
-                          meta={'cookiejar': response.meta['cookiejar']},
+                          cookies=self.cook,
                           headers=self.headers,
                           callback=self.parse_item,
                           dont_filter=True)
@@ -128,18 +98,20 @@ class WeiboSpider(InitSpider):
         weibo_wrap_elements = sel.xpath('//div[@class="c"]')
 
         #weibo_items = []
-        for index in range(len(weibo_wrap_elements)-2):
+        for index in range(len(weibo_wrap_elements) - 2):
             weibo_item = WeiboItem()
             weibo_item['u_id'] = u_id
-            weibo_item['weibo_content'] = weibo_wrap_elements[index].xpath('.//span[@class="ctt"]/text()').extract()[0]
-            weibo_item['weibo_ct'] = weibo_wrap_elements[index].xpath('.//span[@class="ct"]/text()').extract()
+            weibo_item['weibo_content'] = weibo_wrap_elements[
+                index].xpath('.//span[@class="ctt"]/text()').extract()[0]
+            weibo_item['weibo_ct'] = weibo_wrap_elements[
+                index].xpath('.//span[@class="ct"]/text()').extract()
             subnode_count = len(weibo_wrap_elements[index].xpath('.//div'))
             if subnode_count > 2:
                 weibo_item['weibo_type'] = u'转发'
             else:
                 weibo_item['weibo_type'] = u'原创'
             yield weibo_item
-            #weibo_items.append(json.dumps(weibo_item))
+            # weibo_items.append(json.dumps(weibo_item))
         #item['weibo'] = weibo_items
 
         # Make the user info url
@@ -147,7 +119,8 @@ class WeiboSpider(InitSpider):
         print '发送请求资料URL:'
         print info_url
         yield Request(info_url,
-                      meta={'cookiejar': response.meta['cookiejar'], 'item': item},
+                      cookies=self.cook,
+                      meta={'item': item},
                       headers=self.headers,
                       callback=self.parse_info,
                       dont_filter=True)
@@ -155,6 +128,8 @@ class WeiboSpider(InitSpider):
     def parse_info(self, response):
         item = response.meta['item']
         sel = Selector(response)
-        item['u_base_info'] = sel.xpath("//div[@class='c'][3]//text()").extract()
-        item['u_experience'] = sel.xpath("//div[@class='c'][4]//text()").extract()
+        item['u_base_info'] = sel.xpath(
+            "//div[@class='c'][3]//text()").extract()
+        item['u_experience'] = sel.xpath(
+            "//div[@class='c'][4]//text()").extract()
         return item

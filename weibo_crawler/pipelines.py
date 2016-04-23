@@ -37,6 +37,11 @@ class JsonWriterPipeline(object):
 class WeiboCrawlerPipeline(object):
 
     def __init__(self, dbpool):
+        fp = file(r'/tmp/options.json')
+        options =  json.load(fp)
+        fp.close
+        self.user_table_name = options['user_table_name']
+        self.weibo_table_name = options['weibo_table_name']
         self.dbpool = dbpool
 
     @classmethod
@@ -71,7 +76,7 @@ class WeiboCrawlerPipeline(object):
         name,sex, region, birthday, introduction, tags = self.get_user_info(item['u_base_info'])
 
         conn.execute("""
-            insert into user_info(u_id, u_name, u_weibo_count, u_following, u_fans, u_sex, u_region, u_birthday, u_introduction, u_tags ,u_school)
+            insert into """ + self.user_table_name + """(u_id, u_name, u_weibo_count, u_following, u_fans, u_sex, u_region, u_birthday, u_introduction, u_tags ,u_school)
             values(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         """, (item['u_id'], name, int(item['u_weibo_count']), int(item['u_following']), int(item['u_fans']), sex, region, birthday, introduction, tags, school))
     
@@ -79,7 +84,7 @@ class WeiboCrawlerPipeline(object):
         #\xc2\xa0\xe6\x9d\xa5\xe8\x87\xaa
         day, time, client = self.deal_weibo_ct(item['weibo_ct'][0])
         conn.execute("""
-            insert into weibo_info(u_id, w_content, w_type, w_day, w_time, w_client)
+            insert into """ + self.weibo_table_name +"""(u_id, w_content, w_type, w_day, w_time, w_client)
             values(%s, %s, %s, %s, %s, %s)
         """, (item['u_id'], item['weibo_content'], item['weibo_type'], day, time, client))
 
