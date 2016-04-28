@@ -1,9 +1,4 @@
 # -*- coding: utf-8 -*-
-
-# Define your item pipelines here
-#
-# Don't forget to add your pipeline to the ITEM_PIPELINES setting
-# See: http://doc.scrapy.org/en/latest/topics/item-pipeline.html
 from scrapy import signals
 from scrapy import log
 from twisted.enterprise import adbapi
@@ -69,10 +64,7 @@ class WeiboCrawlerPipeline(object):
         return query
 
     def _user_insert(self, conn, item, spider):
-        
-        
         school = self.get_school_value(item['u_experience'])
-
         name,sex, region, birthday, introduction, tags = self.get_user_info(item['u_base_info'])
 
         conn.execute("""
@@ -80,6 +72,7 @@ class WeiboCrawlerPipeline(object):
             values(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         """, (item['u_id'], name, int(item['u_weibo_count']), int(item['u_following']), int(item['u_fans']), sex, region, birthday, introduction, tags, school))
     
+
     def _weibo_insert(self, conn, item, spider):
         #\xc2\xa0\xe6\x9d\xa5\xe8\x87\xaa
         day, time, client = self.deal_weibo_ct(item['weibo_ct'][0])
