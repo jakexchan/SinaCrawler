@@ -33,7 +33,7 @@ class WeiboSpider(InitSpider):
 
     download_delay = int(options['delay'])
     search_user_url = 'http://weibo.cn/search/user/?keyword='
-    
+
     keyword = options['keyword']
     begin_page = int(options['begin_page'])
     end_page = int(options['end_page'])
@@ -85,7 +85,7 @@ class WeiboSpider(InitSpider):
         info_link = ut_element.xpath(
             '//a[re:test(@href, "\/\d+\/info")]/@href').extract()[0]  # 获取用户信息链接
         u_id = info_link.split('/')[1]
-        
+
         item['u_id'] = u_id  # 获取微博用户ID号
         tip = sel.xpath('//div[@class="tip2"]')[0]
         item['u_weibo_count'] = re.findall(
